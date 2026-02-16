@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Sorte Chinelista</title>
     
+    <script>
+      // CRITICAL FIX: Intercept JSON.stringify to prevent circular structure errors
+      // caused by React 19 Fiber nodes being serialized by third-party tracking scripts.
+      (function() {
+        const originalStringify = JSON.stringify;
+        JSON.stringify = function(value, replacer, space) {
+          const cache = new Set();
+          const safeReplacer = function(key, val) {
+            // Prevent serializing DOM nodes or Events which are circular/complex
+            if (val instanceof Node) return "[DOMNode]";
+            if (val instanceof Event) return "[Event]";
+            
+            if (typeof val === 'object' && val !== null) {
+              if (cache.has(val)) return "[Circular]";
+              cache.add(val);
+            }
+            return replacer ? replacer.call(this, key, val) : val;
+          };
+          try {
+            return originalStringify(value, safeReplacer, space);
+          } catch (err) {
+            console.warn("JSON.stringify fallback triggered for circular structure", err);
+            return "[Unserializable Object]";
+          }
+        };
+      })();
+    </script>
+
     <script
       src="https://cdn.utmify.com.br/scripts/utms/latest.js"
       data-utmify-prevent-xcod-sck

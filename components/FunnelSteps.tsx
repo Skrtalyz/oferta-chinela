@@ -12,7 +12,7 @@ import {
   Star, 
   ArrowRight,
   ShoppingCart,
-  Timer,
+  Timer, 
   CheckCircle,
   HelpCircle,
   ShieldCheck,
@@ -35,7 +35,12 @@ interface StepProps {
 const CartoonButton: React.FC<{ onClick: () => void, children: React.ReactNode, className?: string, disabled?: boolean }> = ({ onClick, children, className = "", disabled }) => (
   <button
     disabled={disabled}
-    onClick={onClick}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Execute the callback without passing any arguments to avoid leaking the event object
+      onClick();
+    }}
     className={`bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow ${className}`}
   >
     {children}
@@ -53,7 +58,11 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
   return (
     <div className="border-b border-rose-100 last:border-0">
       <button 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         className="w-full py-4 flex items-center justify-between text-left gap-3 focus:outline-none"
       >
         <span className="font-bold text-gray-700 text-sm leading-tight">{question}</span>
@@ -93,14 +102,14 @@ export const EntryStep: React.FC<StepProps> = ({ onNext }) => (
     <p className="text-gray-600 font-semibold text-sm">
       Jogue agora a <strong>Sorte Chinelista</strong> e gire roletas, abra baús, risque cartelas e desbloqueie descontos ÉPICOS + bônus exclusivos só pra você!
     </p>
-    <CartoonButton onClick={onNext} className="w-full">
+    <CartoonButton onClick={() => onNext()} className="w-full">
       Entrar no Jogo e Girar! 🔥
     </CartoonButton>
     <p className="text-amber-600 text-sm font-bold italic animate-pulse">Clique e comece sua vitória hoje! 🎁</p>
   </div>
 );
 
-export const WelcomeStep: React.FC<StepProps & { updateState: any }> = ({ onNext, updateState }) => {
+export const WelcomeStep: React.FC<StepProps & { state: GameState, updateState: any }> = ({ onNext, updateState }) => {
   const [name, setName] = useState('');
   return (
     <div className="space-y-8 pt-10">
@@ -182,7 +191,7 @@ export const IncomeRouletteStep: React.FC<StepProps & { state: GameState, update
       {!result && (
         <CartoonButton
           disabled={spinning}
-          onClick={spin}
+          onClick={() => spin()}
           className="w-full"
         >
           {spinning ? 'Girando a Sorte...' : 'Girar Agora! 🌀'}
@@ -202,7 +211,7 @@ export const IncomeRouletteStep: React.FC<StepProps & { state: GameState, update
           <div className="bg-amber-100 p-4 rounded-3xl border-2 border-amber-300">
             <p className="text-amber-700 font-black">Nível 1 concluído – +10 pontos de sorte! 🏆</p>
           </div>
-          <CartoonButton onClick={onNext} className="w-full">
+          <CartoonButton onClick={() => onNext()} className="w-full">
             Próximo nível: escolha seu estilo!
           </CartoonButton>
         </motion.div>
@@ -228,7 +237,9 @@ export const StyleSelectionStep: React.FC<StepProps & { state: GameState, update
             key={s.id}
             whileHover={{ scale: 1.05, x: 5 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               updateState({ 
                 chosenStyle: s.id,
                 points: state.points + 5,
@@ -267,7 +278,9 @@ export const TreasureChestStep: React.FC<StepProps & { state: GameState, updateS
               key={num}
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setOpened(true);
                 updateState({ points: state.points + 10, badges: [...state.badges, 'Tesoureira da Sorte'] });
                 confetti({ particleCount: 50, colors: ['#fbbf24', '#fff'] });
@@ -291,7 +304,7 @@ export const TreasureChestStep: React.FC<StepProps & { state: GameState, updateS
             </p>
             <p className="text-rose-500 font-black mt-6 italic text-xl">Nível up, guerreira!</p>
           </CartoonCard>
-          <CartoonButton onClick={onNext} className="w-full">
+          <CartoonButton onClick={() => onNext()} className="w-full">
             Ganhar Meu Desconto! ➡️
           </CartoonButton>
         </motion.div>
@@ -335,7 +348,11 @@ export const DiscountBoxStep: React.FC<StepProps & { state: GameState, updateSta
               <motion.button
                 key={num}
                 whileHover={{ y: -10, rotate: [0, 5, -5, 0] }}
-                onClick={() => chooseBox(num)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  chooseBox(num);
+                }}
                 className="bg-white h-40 rounded-[2.5rem] border-4 border-rose-100 flex flex-col items-center justify-center gap-3 cartoon-shadow"
               >
                 <div className="bg-rose-50 p-4 rounded-full">
@@ -369,7 +386,7 @@ export const DiscountBoxStep: React.FC<StepProps & { state: GameState, updateSta
             <h3 className="text-5xl font-black text-green-700 drop-shadow-sm">PARABÉNS! 🚀</h3>
             <p className="text-3xl font-black text-green-600 mt-4">70% OFF desbloqueado!</p>
           </CartoonCard>
-          <CartoonButton onClick={onNext} className="w-full">
+          <CartoonButton onClick={() => onNext()} className="w-full">
             Continuar para Bônus! ➡️
           </CartoonButton>
         </motion.div>
@@ -418,7 +435,7 @@ export const BonusRouletteStep: React.FC<StepProps & { state: GameState, updateS
 
       {!bonus && (
         <CartoonButton
-          onClick={spin}
+          onClick={() => spin()}
           disabled={spinning}
           className="w-full"
         >
@@ -433,7 +450,7 @@ export const BonusRouletteStep: React.FC<StepProps & { state: GameState, updateS
             <h3 className="text-3xl font-black">{bonus}! 🚀</h3>
           </div>
           <p className="text-rose-600 font-black text-xl tracking-wide">Nível 3 concluído – Total: {state.points} pontos!</p>
-          <CartoonButton onClick={onNext} className="w-full">
+          <CartoonButton onClick={() => onNext()} className="w-full">
             Imprimir minha sorte!
           </CartoonButton>
         </motion.div>
@@ -482,15 +499,35 @@ export const ScratchCardStep: React.FC<StepProps & { state: GameState, updateSta
       }
     };
 
-    const startDrawing = () => isDrawing = true;
-    const endDrawing = () => isDrawing = false;
+    const startDrawing = (e: any) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      isDrawing = true;
+    };
+    const endDrawing = (e: any) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      isDrawing = false;
+    };
 
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mouseup', endDrawing);
     canvas.addEventListener('mousemove', scratch);
-    canvas.addEventListener('touchstart', startDrawing);
-    canvas.addEventListener('touchend', endDrawing);
-    canvas.addEventListener('touchmove', scratch);
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchend', endDrawing, { passive: false });
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      scratch(e);
+    }, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('mousedown', startDrawing);
+      canvas.removeEventListener('mouseup', endDrawing);
+      canvas.removeEventListener('mousemove', scratch);
+      canvas.removeEventListener('touchstart', startDrawing);
+      canvas.removeEventListener('touchend', endDrawing);
+    };
   }, []);
 
   return (
@@ -558,7 +595,7 @@ export const BadgeCollectionStep: React.FC<StepProps & { state: GameState }> = (
         <p className="text-6xl font-black">x1.5</p>
         <p className="text-sm mt-2 font-bold opacity-90">(por engajamento épico!)</p>
       </div>
-      <CartoonButton onClick={onNext} className="w-full">
+      <CartoonButton onClick={() => onNext()} className="w-full">
         Ir para Oferta Final! <Timer className="w-6 h-6" />
       </CartoonButton>
     </div>
@@ -611,7 +648,7 @@ export const PreviewsStep: React.FC<StepProps & { state: GameState }> = ({ state
          </div>
       </CartoonCard>
 
-      <CartoonButton onClick={onNext} className="w-full">
+      <CartoonButton onClick={() => onNext()} className="w-full">
         Garantir Meu Kit Agora! 🔥
       </CartoonButton>
     </div>
@@ -714,7 +751,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
       {/* Botão de Pagamento */}
       <div className="space-y-4 pt-4">
         <CartoonButton 
-          onClick={handleCheckout}
+          onClick={() => handleCheckout()}
           className="w-full bg-green-500 border-green-700 hover:bg-green-400 h-24 text-2xl shadow-green-200"
         >
           Pagar R$ 29,90 Agora <ShoppingCart className="w-8 h-8" />
@@ -768,7 +805,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         
         <div className="relative px-2">
           <CartoonButton 
-            onClick={handleCheckout}
+            onClick={() => handleCheckout()}
             className="w-full bg-green-500 border-green-700 h-20 text-xl"
           >
             SIM! QUERO MEU KIT AGORA!
@@ -803,7 +840,13 @@ export const PostPurchaseStep: React.FC<{ state: GameState }> = ({ state }) => {
         </div>
         <h3 className="text-2xl font-black uppercase tracking-widest mb-4">OFERTA VIP AGORA</h3>
         <p className="text-lg font-bold opacity-90 leading-snug mb-8">Quer mais? Por só <strong>R$ 19,90</strong>, leve <strong>+50 artes extras</strong> (Natal, Mães, Pais...).</p>
-        <button className="w-full bg-white text-rose-600 font-black py-6 rounded-[2.5rem] text-2xl shadow-xl hover:scale-105 transition-transform active:scale-95">
+        <button 
+          onClick={(e) => {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+          }}
+          className="w-full bg-white text-rose-600 font-black py-6 rounded-[2.5rem] text-2xl shadow-xl hover:scale-105 transition-transform active:scale-95"
+        >
           Quero Mais! 🚀
         </button>
       </div>
@@ -812,7 +855,15 @@ export const PostPurchaseStep: React.FC<{ state: GameState }> = ({ state }) => {
         <p className="text-amber-600 font-black text-sm uppercase tracking-widest">
           Poste nos stories e marque <strong>@sua_conta</strong> ❤️
         </p>
-        <button className="text-rose-400 font-black underline text-lg opacity-70 hover:opacity-100">Não, quero apenas meu pacote base.</button>
+        <button 
+          onClick={(e) => {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+          }}
+          className="text-rose-400 font-black underline text-lg opacity-70 hover:opacity-100"
+        >
+          Não, quero apenas meu pacote base.
+        </button>
       </div>
     </div>
   );
