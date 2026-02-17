@@ -6,21 +6,31 @@
     <title>Jogo da Sorte Chinelista</title>
     
     <script>
-      // Patch global de segurança contra erros de estrutura circular
+      // Patch global de segurança contra erros de estrutura circular (React 19 Fiber)
       (function() {
         const nativeStringify = JSON.stringify;
         JSON.stringify = function(val, replacer, space) {
           const seen = new WeakSet();
           return nativeStringify(val, (key, value) => {
+            // Evita erro circular em elementos DOM e Eventos
             if (value instanceof Node) return "[Elemento DOM]";
             if (value instanceof Event) return "[Evento]";
+            
+            // Detecta circularidade genérica
             if (typeof value === "object" && value !== null) {
               if (seen.has(value)) return "[Circular]";
               seen.add(value);
             }
+
+            // Respeita o replacer original se for uma função
             if (typeof replacer === "function") {
-              return replacer(key, value);
+              return replacer.call(this, key, value);
             }
+            // Respeita o replacer original se for um array (filtro de chaves)
+            if (Array.isArray(replacer)) {
+              if (key !== "" && !replacer.includes(key)) return undefined;
+            }
+            
             return value;
           }, space);
         };
@@ -97,5 +107,7 @@
 </head>
 <body>
     <div id="root"></div>
+    <!-- CARREGAMENTO DO APP - ESSENCIAL PARA FUNCIONAR -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
