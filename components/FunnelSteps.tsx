@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlipperStyle, GameState, Step } from '../types';
+import { SlipperStyle, GameState, Step } from '../types.ts';
 import { 
   Sparkles, 
   Trophy, 
@@ -34,7 +34,6 @@ const CartoonButton: React.FC<{ onClick: () => void, children: React.ReactNode, 
   <button
     disabled={disabled}
     onClick={(e) => {
-      // Intercepta e destrói o evento aqui para que scripts de tracking não tentem serializá-lo
       if (e && e.preventDefault) e.preventDefault();
       if (e && e.stopPropagation) e.stopPropagation();
       onClick();
@@ -236,7 +235,6 @@ export const StyleSelectionStep: React.FC<StepProps & { state: GameState, update
             whileHover={{ scale: 1.05, x: 5 }}
             whileTap={{ scale: 0.95 }}
             onClick={(e) => {
-              // Limpeza total do evento
               if (e && e.preventDefault) e.preventDefault();
               if (e && e.stopPropagation) e.stopPropagation();
               

@@ -6,41 +6,23 @@
     <title>Jogo da Sorte Chinelista</title>
     
     <script>
-      // SOLUÇÃO DEFINITIVA PARA ESTRUTURA CIRCULAR (REACT 19 + TRACKING SCRIPTS)
+      // Patch global de segurança contra erros de estrutura circular
       (function() {
-        const originalStringify = JSON.stringify;
-        JSON.stringify = function(value, replacer, space) {
-          const cache = new Set();
-          
-          const safeReplacer = function(key, val) {
-            // 1. Bloqueia serialização de Elementos DOM e Eventos (causadores do erro circular)
-            if (val instanceof Node) return "[DOMNode]";
-            if (val instanceof Event) return "[Event]";
-            
-            // 2. Trata referências circulares genéricas
-            if (typeof val === 'object' && val !== null) {
-              if (cache.has(val)) return "[Circular]";
-              cache.add(val);
+        const nativeStringify = JSON.stringify;
+        JSON.stringify = function(val, replacer, space) {
+          const seen = new WeakSet();
+          return nativeStringify(val, (key, value) => {
+            if (value instanceof Node) return "[Elemento DOM]";
+            if (value instanceof Event) return "[Evento]";
+            if (typeof value === "object" && value !== null) {
+              if (seen.has(value)) return "[Circular]";
+              seen.add(value);
             }
-            
-            // 3. Executa o replacer original se ele existir e for uma função
-            if (typeof replacer === 'function') {
-              return replacer.call(this, key, val);
+            if (typeof replacer === "function") {
+              return replacer(key, value);
             }
-            // 4. Se o replacer for um array, filtra as chaves (comportamento nativo)
-            if (Array.isArray(replacer)) {
-              if (key !== "" && !replacer.includes(key)) return undefined;
-            }
-            
-            return val;
-          };
-
-          try {
-            return originalStringify(value, safeReplacer, space);
-          } catch (err) {
-            console.error("Erro crítico evitado no JSON.stringify:", err);
-            return "[Erro de Serialização]";
-          }
+            return value;
+          }, space);
         };
       })();
     </script>

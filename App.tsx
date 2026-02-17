@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -14,9 +13,9 @@ import {
   PreviewsStep, 
   FinalOfferStep, 
   PostPurchaseStep 
-} from './components/FunnelSteps';
-import { GameState, Step } from './types';
-import { ProgressBar } from './components/ProgressBar';
+} from './components/FunnelSteps.tsx';
+import { GameState, Step } from './types.ts';
+import { ProgressBar } from './components/ProgressBar.tsx';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
