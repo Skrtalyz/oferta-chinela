@@ -34,11 +34,12 @@ interface StepProps {
 }
 
 const getUrlWithParams = (baseUrl: string) => {
+  if (typeof window === 'undefined') return baseUrl;
   const search = window.location.search;
-  if (!search) return baseUrl;
-  // Verifica se a URL base já contém um '?'
+  if (!search || search === '?' || search === '') return baseUrl;
+  
+  // Garante que não adicionamos um '?' extra se já houver um ou sebaseUrl já tiver parâmetros
   const separator = baseUrl.includes('?') ? '&' : '?';
-  // Remove o '?' inicial do window.location.search para evitar duplicidade
   const cleanSearch = search.startsWith('?') ? search.substring(1) : search;
   return `${baseUrl}${separator}${cleanSearch}`;
 };
@@ -50,17 +51,25 @@ const CartoonButton: React.FC<{
   className?: string, 
   disabled?: boolean 
 }> = ({ onClick, href, children, className = "", disabled }) => {
-  const commonClasses = `bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow ${className}`;
+  const commonClasses = `bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow cursor-pointer select-none ${className}`;
   
   if (href) {
     const finalHref = getUrlWithParams(href);
     return (
       <a
         href={finalHref}
-        onClick={(e) => {
-          if (onClick) onClick();
-        }}
+        target="_top"
+        rel="noopener noreferrer"
         className={commonClasses}
+        onClick={() => {
+          if (onClick) {
+            try {
+              onClick();
+            } catch (e) {
+              console.error("Tracking error:", e);
+            }
+          }
+        }}
       >
         {children}
       </a>
@@ -71,7 +80,8 @@ const CartoonButton: React.FC<{
     <button
       disabled={disabled}
       onClick={(e) => {
-        if (e && e.preventDefault) e.preventDefault();
+        // Não usamos preventDefault aqui para permitir comportamento natural, 
+        // mas evitamos propagação para não disparar eventos de pais indesejados
         if (e && e.stopPropagation) e.stopPropagation();
         if (onClick) onClick();
       }}
@@ -752,7 +762,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
-            <p className="font-black text-gray-700 text-sm">bônus: {state?.unlockedBonus || '+20 artes grátis'}</p>
+            <p className="font-black text-gray-700 text-sm">bônus: +20 artes grátis</p>
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
