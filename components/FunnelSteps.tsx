@@ -19,9 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   Smartphone,
-  Mail,
   ZapIcon,
-  CreditCard,
   DownloadCloud
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -36,9 +34,9 @@ const CartoonButton: React.FC<{ onClick: () => void, children: React.ReactNode, 
   <button
     disabled={disabled}
     onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      // Execute the callback without passing any arguments to avoid leaking the event object
+      // Intercepta e destrói o evento aqui para que scripts de tracking não tentem serializá-lo
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       onClick();
     }}
     className={`bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow ${className}`}
@@ -59,8 +57,8 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
     <div className="border-b border-rose-100 last:border-0">
       <button 
         onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+          if (e && e.preventDefault) e.preventDefault();
+          if (e && e.stopPropagation) e.stopPropagation();
           setIsOpen(!isOpen);
         }}
         className="w-full py-4 flex items-center justify-between text-left gap-3 focus:outline-none"
@@ -162,8 +160,8 @@ export const IncomeRouletteStep: React.FC<StepProps & { state: GameState, update
       updateState({ 
         chosenIncome: win.value, 
         chosenIncomeReason: win.reason,
-        points: state.points + 10,
-        badges: [...state.badges, 'Sonhadora Financeira']
+        points: (state?.points || 0) + 10,
+        badges: [...(state?.badges || []), 'Sonhadora Financeira']
       });
       setSpinning(false);
       confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 }, colors: ['#fbbf24', '#f43f5e', '#ffffff'] });
@@ -205,7 +203,7 @@ export const IncomeRouletteStep: React.FC<StepProps & { state: GameState, update
               Pareceu em... <strong>R${result}! ❤️</strong>
             </p>
             <p className="text-gray-700 font-bold mt-2">
-              Uau {state.userName}! R${result} para {state.chosenIncomeReason} é perfeito pra você.
+              Uau {state?.userName}! R${result} para {state?.chosenIncomeReason} é perfeito pra você.
             </p>
           </CartoonCard>
           <div className="bg-amber-100 p-4 rounded-3xl border-2 border-amber-300">
@@ -238,21 +236,23 @@ export const StyleSelectionStep: React.FC<StepProps & { state: GameState, update
             whileHover={{ scale: 1.05, x: 5 }}
             whileTap={{ scale: 0.95 }}
             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+              // Limpeza total do evento
+              if (e && e.preventDefault) e.preventDefault();
+              if (e && e.stopPropagation) e.stopPropagation();
+              
               updateState({ 
                 chosenStyle: s.id,
-                points: state.points + 5,
-                badges: [...state.badges, 'Estilista Personalizada']
+                points: (state?.points || 0) + 5,
+                badges: [...(state?.badges || []), 'Estilista Personalizada']
               });
               onNext();
             }}
             className="flex items-center gap-5 p-4 rounded-[2rem] border-4 border-yellow-200 bg-white cartoon-shadow text-left group transition-all"
           >
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-yellow-100 flex-shrink-0">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-yellow-100 flex-shrink-0 pointer-events-none">
               <img src={s.img} alt={s.title} className="w-full h-full object-cover" />
             </div>
-            <div>
+            <div className="pointer-events-none">
               <p className="font-black text-xl text-rose-600 leading-tight">{s.title}</p>
               <p className="text-sm font-bold text-gray-500">{s.desc}</p>
             </div>
@@ -269,7 +269,7 @@ export const TreasureChestStep: React.FC<StepProps & { state: GameState, updateS
   return (
     <div className="text-center py-6 space-y-8">
       <h2 className="text-3xl font-black text-rose-600">Baú de Tesouros! 🗝️</h2>
-      <p className="text-gray-700 font-bold">Abra um baú mágico no seu tema {state.chosenStyle}!</p>
+      <p className="text-gray-700 font-bold">Abra um baú mágico no seu tema {state?.chosenStyle}!</p>
       
       {!opened ? (
         <div className="grid grid-cols-3 gap-4 mt-8">
@@ -279,18 +279,21 @@ export const TreasureChestStep: React.FC<StepProps & { state: GameState, updateS
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
               onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+                if (e && e.preventDefault) e.preventDefault();
+                if (e && e.stopPropagation) e.stopPropagation();
                 setOpened(true);
-                updateState({ points: state.points + 10, badges: [...state.badges, 'Tesoureira da Sorte'] });
+                updateState({ 
+                  points: (state?.points || 0) + 10, 
+                  badges: [...(state?.badges || []), 'Tesoureira da Sorte'] 
+                });
                 confetti({ particleCount: 50, colors: ['#fbbf24', '#fff'] });
               }}
               className="flex flex-col items-center gap-3"
             >
-              <div className="w-24 h-24 bg-gradient-to-br from-amber-300 to-amber-500 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl cartoon-shadow">
+              <div className="w-24 h-24 bg-gradient-to-br from-amber-300 to-amber-500 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl cartoon-shadow pointer-events-none">
                  <Lock className="w-10 h-10 text-white animate-float" />
               </div>
-              <span className="text-sm font-black text-amber-600 uppercase">Baú {num}</span>
+              <span className="text-sm font-black text-amber-600 uppercase pointer-events-none">Baú {num}</span>
             </motion.button>
           ))}
         </div>
@@ -318,19 +321,19 @@ export const DiscountBoxStep: React.FC<StepProps & { state: GameState, updateSta
   const [lastClickedBox, setLastClickedBox] = useState<number | null>(null);
 
   const chooseBox = (num: number) => {
-    const isFirstAttempt = state.discountAttempt === 0;
+    const isFirstAttempt = (state?.discountAttempt || 0) === 0;
     const pct = isFirstAttempt ? 40 : 70;
     
     setRevealed(pct);
     setLastClickedBox(num);
     
     if (pct === 70) {
-      updateState({ discountAttempt: state.discountAttempt + 1 });
+      updateState({ discountAttempt: (state?.discountAttempt || 0) + 1 });
       setTimeout(() => {
         confetti({ particleCount: 200, spread: 100, colors: ['#f43f5e', '#fbbf24'] });
       }, 500);
     } else {
-      updateState({ discountAttempt: state.discountAttempt + 1 });
+      updateState({ discountAttempt: (state?.discountAttempt || 0) + 1 });
     }
   };
 
@@ -342,23 +345,23 @@ export const DiscountBoxStep: React.FC<StepProps & { state: GameState, updateSta
       {!revealed && (
         <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3].map((num) => {
-            if (state.discountAttempt > 0 && num === lastClickedBox) return <div key={num} className="h-40" />;
+            if ((state?.discountAttempt || 0) > 0 && num === lastClickedBox) return <div key={num} className="h-40" />;
             
             return (
               <motion.button
                 key={num}
                 whileHover={{ y: -10, rotate: [0, 5, -5, 0] }}
                 onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                  if (e && e.preventDefault) e.preventDefault();
+                  if (e && e.stopPropagation) e.stopPropagation();
                   chooseBox(num);
                 }}
                 className="bg-white h-40 rounded-[2.5rem] border-4 border-rose-100 flex flex-col items-center justify-center gap-3 cartoon-shadow"
               >
-                <div className="bg-rose-50 p-4 rounded-full">
+                <div className="bg-rose-50 p-4 rounded-full pointer-events-none">
                   <Gift className="w-12 h-12 text-rose-500" />
                 </div>
-                <span className="text-sm font-black text-rose-600 uppercase">Caixa {num}</span>
+                <span className="text-sm font-black text-rose-600 uppercase pointer-events-none">Caixa {num}</span>
               </motion.button>
             );
           })}
@@ -413,8 +416,8 @@ export const BonusRouletteStep: React.FC<StepProps & { state: GameState, updateS
       setBonus(win);
       updateState({ 
         unlockedBonus: win,
-        points: state.points + 15,
-        badges: [...state.badges, 'Riscadora Mestra'] 
+        points: (state?.points || 0) + 15,
+        badges: [...(state?.badges || []), 'Riscadora Mestra'] 
       });
       setSpinning(false);
       confetti({ particleCount: 100, spread: 100, colors: ['#fbbf24', '#f43f5e'] });
@@ -449,7 +452,7 @@ export const BonusRouletteStep: React.FC<StepProps & { state: GameState, updateS
             <p className="text-xs uppercase tracking-[0.2em] font-black opacity-80 mb-2">Prêmio Revelado</p>
             <h3 className="text-3xl font-black">{bonus}! 🚀</h3>
           </div>
-          <p className="text-rose-600 font-black text-xl tracking-wide">Nível 3 concluído – Total: {state.points} pontos!</p>
+          <p className="text-rose-600 font-black text-xl tracking-wide">Nível 3 concluído – Total: {state?.points} pontos!</p>
           <CartoonButton onClick={() => onNext()} className="w-full">
             Imprimir minha sorte!
           </CartoonButton>
@@ -500,13 +503,11 @@ export const ScratchCardStep: React.FC<StepProps & { state: GameState, updateSta
     };
 
     const startDrawing = (e: any) => {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
+      if (e && e.cancelable) e.preventDefault();
       isDrawing = true;
     };
     const endDrawing = (e: any) => {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
+      if (e && e.cancelable) e.preventDefault();
       isDrawing = false;
     };
 
@@ -516,8 +517,7 @@ export const ScratchCardStep: React.FC<StepProps & { state: GameState, updateSta
     canvas.addEventListener('touchstart', startDrawing, { passive: false });
     canvas.addEventListener('touchend', endDrawing, { passive: false });
     canvas.addEventListener('touchmove', (e) => {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
+      if (e && e.cancelable) e.preventDefault();
       scratch(e);
     }, { passive: false });
 
@@ -553,7 +553,7 @@ export const ScratchCardStep: React.FC<StepProps & { state: GameState, updateSta
             <span className="font-black text-white text-xl">Nível 4 Concluído! 🏅</span>
           </div>
           <CartoonButton onClick={() => {
-            updateState({ badges: [...state.badges, 'Guerreira Sortuda'] });
+            updateState({ badges: [...(state?.badges || []), 'Guerreira Sortuda'] });
             onNext();
           }} className="w-full">
             Ver Minha Coleção! 🏆
@@ -574,7 +574,7 @@ export const BadgeCollectionStep: React.FC<StepProps & { state: GameState }> = (
 
   return (
     <div className="space-y-8 pt-6">
-      <h2 className="text-3xl font-black text-rose-600 text-center leading-tight">Sua Coleção, {state.userName}! 🏆</h2>
+      <h2 className="text-3xl font-black text-rose-600 text-center leading-tight">Sua Coleção, {state?.userName}! 🏆</h2>
       <div className="grid grid-cols-2 gap-4">
         {allBadges.map((b) => (
           <motion.div 
@@ -582,11 +582,11 @@ export const BadgeCollectionStep: React.FC<StepProps & { state: GameState }> = (
             whileHover={{ rotate: [0, -5, 5, 0] }}
             className="bg-white p-5 rounded-[2rem] border-4 border-yellow-100 flex flex-col items-center text-center gap-2 shadow-sm cartoon-shadow"
           >
-             <div className={`${b.color} p-4 rounded-full border-4 border-white shadow-md`}>
+             <div className={`${b.color} p-4 rounded-full border-4 border-white shadow-md pointer-events-none`}>
                 <b.icon className="w-8 h-8 text-white" />
              </div>
-             <p className="text-[10px] font-black text-yellow-500 uppercase">Nível {b.level}</p>
-             <p className="text-xs font-black text-gray-800 leading-tight">{b.id}</p>
+             <p className="text-[10px] font-black text-yellow-500 uppercase pointer-events-none">Nível {b.level}</p>
+             <p className="text-xs font-black text-gray-800 leading-tight pointer-events-none">{b.id}</p>
           </motion.div>
         ))}
       </div>
@@ -630,17 +630,17 @@ export const PreviewsStep: React.FC<StepProps & { state: GameState }> = ({ state
     ]
   };
 
-  const currentPreviewImages = STYLE_PREVIEWS[state.chosenStyle || 'flores'];
+  const currentPreviewImages = STYLE_PREVIEWS[state?.chosenStyle || 'flores'];
 
   return (
     <div className="space-y-8 py-4">
       <h2 className="text-3xl font-black text-rose-600 text-center leading-tight">Sua vitória está se materializando! ✨</h2>
       
       <CartoonCard className="p-4">
-         <p className="text-xs font-black text-amber-500 uppercase mb-4 tracking-widest text-center">Preview do estilo: {state.chosenStyle}</p>
+         <p className="text-xs font-black text-amber-500 uppercase mb-4 tracking-widest text-center">Preview do estilo: {state?.chosenStyle}</p>
          <div className="grid grid-cols-2 gap-3">
             {currentPreviewImages.map((img, i) => (
-              <div key={i} className="relative group overflow-hidden rounded-2xl border-2 border-yellow-50">
+              <div key={i} className="relative group overflow-hidden rounded-2xl border-2 border-yellow-50 pointer-events-none">
                 <img src={img} className="rounded-xl w-full h-full object-cover group-hover:scale-110 transition-transform" alt={`Preview ${i}`} />
                 <div className="absolute inset-0 bg-rose-500/10"></div>
               </div>
@@ -654,8 +654,6 @@ export const PreviewsStep: React.FC<StepProps & { state: GameState }> = ({ state
     </div>
   );
 };
-
-// --- ETAPA FINAL OTIMIZADA ---
 
 export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ state, onNext }) => {
   const handleCheckout = () => {
@@ -694,12 +692,10 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
 
   return (
     <div className="space-y-8 py-6 text-center">
-      {/* Título */}
       <div className="space-y-2">
-        <h2 className="text-4xl font-black text-rose-600 drop-shadow-sm leading-tight">Parabéns pelo Nível Final, {state.userName}! 🎉</h2>
+        <h2 className="text-4xl font-black text-rose-600 drop-shadow-sm leading-tight">Parabéns pelo Nível Final, {state?.userName}! 🎉</h2>
       </div>
 
-      {/* Lista de Benefícios e Preço */}
       <CartoonCard className="text-left space-y-5 p-8 relative overflow-hidden border-rose-300">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -708,7 +704,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
-            <p className="font-black text-gray-700 text-sm">bônus: {state.unlockedBonus || 'Acesso VIP'}</p>
+            <p className="font-black text-gray-700 text-sm">bônus: {state?.unlockedBonus || 'Acesso VIP'}</p>
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
@@ -725,7 +721,6 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         </div>
       </CartoonCard>
 
-      {/* Prova Social */}
       <div className="space-y-4 pt-4">
         <h3 className="text-center font-black text-rose-600 text-lg uppercase flex items-center justify-center gap-2">
           <Star className="w-5 h-5 fill-rose-500" /> Resultados Reais <Star className="w-5 h-5 fill-rose-500" />
@@ -734,7 +729,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
           {testimonials.map((t, i) => (
             <div key={i} className="bg-white p-4 rounded-[2rem] border-2 border-yellow-100 shadow-md flex flex-col gap-3">
                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-rose-400">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-rose-400 pointer-events-none">
                     <img src={t.profileImg} className="w-full h-full object-cover" alt={t.name} />
                   </div>
                   <div className="text-left">
@@ -742,13 +737,12 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
                     <p className="text-rose-500 font-black text-[10px] uppercase">{t.result}</p>
                   </div>
                </div>
-               <img src={t.resultImg} className="w-full h-auto rounded-xl" alt="Evidência Real" />
+               <img src={t.resultImg} className="w-full h-auto rounded-xl pointer-events-none" alt="Evidência Real" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Botão de Pagamento */}
       <div className="space-y-4 pt-4">
         <CartoonButton 
           onClick={() => handleCheckout()}
@@ -756,13 +750,11 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         >
           Pagar R$ 29,90 Agora <ShoppingCart className="w-8 h-8" />
         </CartoonButton>
-        
         <p className="text-center text-gray-500 font-bold text-xs px-8 leading-tight italic">
           Pague via Pix e receba seu acesso <span className="text-green-600">IMEDIATAMENTE</span> no seu WhatsApp e E-mail.
         </p>
       </div>
 
-      {/* Garantia Implícita */}
       <div className="grid grid-cols-2 gap-3 bg-white/50 p-6 rounded-[2.5rem] border-2 border-yellow-100">
         <div className="flex items-center gap-2">
           <div className="bg-rose-50 p-2 rounded-full"><DownloadCloud className="text-rose-400 w-4 h-4" /></div>
@@ -782,7 +774,6 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         </div>
       </div>
 
-      {/* FAQ */}
       <div className="space-y-4 pt-8">
         <h3 className="text-center font-black text-rose-600 text-lg uppercase flex items-center justify-center gap-2">
           <HelpCircle className="w-6 h-6" /> Perguntas Frequentes
@@ -794,7 +785,6 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         </CartoonCard>
       </div>
 
-      {/* CTA Final Repetido */}
       <div className="pt-12 pb-20 border-t-2 border-rose-100 space-y-8">
         <div className="space-y-3">
           <h4 className="text-3xl font-black text-rose-600 px-4">Sua independência financeira está a um clique! 💖</h4>
@@ -802,7 +792,6 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
             Não perca a chance de ter acesso ao material que vai transformar seu celular em uma máquina de vendas de chinelos.
           </p>
         </div>
-        
         <div className="relative px-2">
           <CartoonButton 
             onClick={() => handleCheckout()}
@@ -826,16 +815,16 @@ export const PostPurchaseStep: React.FC<{ state: GameState }> = ({ state }) => {
       <motion.div 
         animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
         transition={{ repeat: Infinity, duration: 3 }}
-        className="bg-green-400 w-32 h-32 rounded-[3rem] border-8 border-white flex items-center justify-center shadow-2xl"
+        className="bg-green-400 w-32 h-32 rounded-[3rem] border-8 border-white flex items-center justify-center shadow-2xl pointer-events-none"
       >
         <Trophy className="w-16 h-16 text-white" />
       </motion.div>
       
-      <h2 className="text-4xl font-black text-rose-600 leading-tight">Vitória ÉPICA, {state.userName}! 🎉</h2>
+      <h2 className="text-4xl font-black text-rose-600 leading-tight">Vitória ÉPICA, {state?.userName}! 🎉</h2>
       <p className="text-xl font-bold text-gray-800 px-6 leading-relaxed">Nível Mestre Chinelista desbloqueado! Baixe tudo agora.</p>
 
       <div className="bg-rose-500 p-10 rounded-[4rem] text-white shadow-2xl border-b-[12px] border-rose-800 relative max-w-sm mx-auto group">
-        <div className="absolute -top-6 -right-6 bg-yellow-400 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white rotate-12">
+        <div className="absolute -top-6 -right-6 bg-yellow-400 w-16 h-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white rotate-12 pointer-events-none">
             <Sparkles className="text-white" />
         </div>
         <h3 className="text-2xl font-black uppercase tracking-widest mb-4">OFERTA VIP AGORA</h3>

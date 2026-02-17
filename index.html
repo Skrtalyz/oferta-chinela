@@ -6,28 +6,40 @@
     <title>Jogo da Sorte Chinelista</title>
     
     <script>
-      // CRITICAL FIX: Intercept JSON.stringify to prevent circular structure errors
-      // caused by React 19 Fiber nodes being serialized by third-party tracking scripts.
+      // SOLUÇÃO DEFINITIVA PARA ESTRUTURA CIRCULAR (REACT 19 + TRACKING SCRIPTS)
       (function() {
         const originalStringify = JSON.stringify;
         JSON.stringify = function(value, replacer, space) {
           const cache = new Set();
+          
           const safeReplacer = function(key, val) {
-            // Prevent serializing DOM nodes or Events which are circular/complex
+            // 1. Bloqueia serialização de Elementos DOM e Eventos (causadores do erro circular)
             if (val instanceof Node) return "[DOMNode]";
             if (val instanceof Event) return "[Event]";
             
+            // 2. Trata referências circulares genéricas
             if (typeof val === 'object' && val !== null) {
               if (cache.has(val)) return "[Circular]";
               cache.add(val);
             }
-            return replacer ? replacer.call(this, key, val) : val;
+            
+            // 3. Executa o replacer original se ele existir e for uma função
+            if (typeof replacer === 'function') {
+              return replacer.call(this, key, val);
+            }
+            // 4. Se o replacer for um array, filtra as chaves (comportamento nativo)
+            if (Array.isArray(replacer)) {
+              if (key !== "" && !replacer.includes(key)) return undefined;
+            }
+            
+            return val;
           };
+
           try {
             return originalStringify(value, safeReplacer, space);
           } catch (err) {
-            console.warn("JSON.stringify fallback triggered for circular structure", err);
-            return "[Unserializable Object]";
+            console.error("Erro crítico evitado no JSON.stringify:", err);
+            return "[Erro de Serialização]";
           }
         };
       })();
@@ -83,7 +95,6 @@
         .animate-float {
             animation: float 3s ease-in-out infinite;
         }
-        /* Overlay to ensure readability while keeping the background visible */
         .app-overlay {
             background-color: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(4px);
