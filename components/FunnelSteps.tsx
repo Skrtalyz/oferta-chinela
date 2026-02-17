@@ -33,19 +33,54 @@ interface StepProps {
   updateState?: (updates: Partial<GameState>) => void;
 }
 
-const CartoonButton: React.FC<{ onClick: () => void, children: React.ReactNode, className?: string, disabled?: boolean }> = ({ onClick, children, className = "", disabled }) => (
-  <button
-    disabled={disabled}
-    onClick={(e) => {
-      if (e && e.preventDefault) e.preventDefault();
-      if (e && e.stopPropagation) e.stopPropagation();
-      onClick();
-    }}
-    className={`bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow ${className}`}
-  >
-    {children}
-  </button>
-);
+const getUrlWithParams = (baseUrl: string) => {
+  const search = window.location.search;
+  if (!search) return baseUrl;
+  // Verifica se a URL base já contém um '?'
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  // Remove o '?' inicial do window.location.search para evitar duplicidade
+  const cleanSearch = search.startsWith('?') ? search.substring(1) : search;
+  return `${baseUrl}${separator}${cleanSearch}`;
+};
+
+const CartoonButton: React.FC<{ 
+  onClick?: () => void, 
+  href?: string,
+  children: React.ReactNode, 
+  className?: string, 
+  disabled?: boolean 
+}> = ({ onClick, href, children, className = "", disabled }) => {
+  const commonClasses = `bg-rose-500 text-white font-black py-5 px-8 rounded-[2rem] border-b-8 border-rose-700 hover:bg-rose-400 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3 text-xl cartoon-btn-shadow ${className}`;
+  
+  if (href) {
+    const finalHref = getUrlWithParams(href);
+    return (
+      <a
+        href={finalHref}
+        onClick={(e) => {
+          if (onClick) onClick();
+        }}
+        className={commonClasses}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      disabled={disabled}
+      onClick={(e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (onClick) onClick();
+      }}
+      className={commonClasses}
+    >
+      {children}
+    </button>
+  );
+};
 
 const CartoonCard: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
   <div className={`bg-white rounded-[2.5rem] border-4 border-yellow-200 p-6 cartoon-shadow ${className}`}>
@@ -665,14 +700,12 @@ export const PreviewsStep: React.FC<StepProps & { state: GameState }> = ({ state
 };
 
 export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ state, onNext }) => {
-  const handleCheckout = () => {
-    if (typeof window !== 'undefined') {
-      const fbq = (window as any).fbq;
-      if (typeof fbq === 'function') {
-        fbq('track', 'InitiateCheckout');
-      }
+  const CHECKOUT_URL = 'https://www.ggcheckout.com/checkout/v5/JxOcEhc57Ay25W2RUUuu';
+
+  const trackInitiateCheckout = () => {
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'InitiateCheckout');
     }
-    window.location.href = 'https://www.ggcheckout.com/checkout/v5/JxOcEhc57Ay25W2RUUuu';
   };
 
   const testimonials = [
@@ -719,7 +752,7 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
-            <p className="font-black text-gray-700 text-sm">bônus: {state?.unlockedBonus || 'Acesso VIP'}</p>
+            <p className="font-black text-gray-700 text-sm">bônus: {state?.unlockedBonus || '+20 artes grátis'}</p>
           </div>
           <div className="flex items-center gap-3">
             <CheckCircle className="text-green-500 w-5 h-5 shrink-0" />
@@ -737,7 +770,8 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
            </div>
            
            <CartoonButton 
-             onClick={() => handleCheckout()}
+             href={CHECKOUT_URL}
+             onClick={trackInitiateCheckout}
              className="w-full bg-green-500 border-green-700 hover:bg-green-400 text-xl shadow-green-200"
            >
              GARANTIR AGORA! <ShoppingCart className="w-6 h-6" />
@@ -811,7 +845,8 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
 
       <div className="space-y-4 pt-4">
         <CartoonButton 
-          onClick={() => handleCheckout()}
+          href={CHECKOUT_URL}
+          onClick={trackInitiateCheckout}
           className="w-full bg-green-500 border-green-700 hover:bg-green-400 h-24 text-2xl shadow-green-200"
         >
           Pagar R$ 29,90 Agora <ShoppingCart className="w-8 h-8" />
@@ -860,7 +895,8 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
         </div>
         <div className="relative px-2">
           <CartoonButton 
-            onClick={() => handleCheckout()}
+            href={CHECKOUT_URL}
+            onClick={trackInitiateCheckout}
             className="w-full bg-green-500 border-green-700 h-20 text-xl"
           >
             SIM! QUERO MEU KIT AGORA!
