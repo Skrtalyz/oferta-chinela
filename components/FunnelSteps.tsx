@@ -20,7 +20,10 @@ import {
   ChevronUp,
   Smartphone,
   ZapIcon,
-  DownloadCloud
+  DownloadCloud,
+  UserCheck,
+  BadgeCheck,
+  Medal
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -81,30 +84,38 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
   );
 };
 
-export const EntryStep: React.FC<StepProps> = ({ onNext }) => (
-  <div className="text-center py-10 space-y-8 h-full flex flex-col justify-center items-center">
-    <div className="inline-block mx-auto mb-4">
-      <img 
-        src="https://i.postimg.cc/qRwmdxD7/Design-sem-nome-(15).png" 
-        alt="Logo Sorte Chinelista" 
-        className="w-48 h-auto drop-shadow-lg"
-      />
+export const EntryStep: React.FC<StepProps> = ({ onNext }) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'PageView');
+    }
+  }, []);
+
+  return (
+    <div className="text-center py-10 space-y-8 h-full flex flex-col justify-center items-center">
+      <div className="inline-block mx-auto mb-4">
+        <img 
+          src="https://i.postimg.cc/qRwmdxD7/Design-sem-nome-(15).png" 
+          alt="Logo Sorte Chinelista" 
+          className="w-48 h-auto drop-shadow-lg"
+        />
+      </div>
+      <h1 className="text-4xl font-black text-rose-600 leading-tight drop-shadow-md">
+        Sorte Chinelista 100 Artes 👟✨
+      </h1>
+      <p className="text-gray-800 text-lg font-bold leading-relaxed px-4">
+        Mulher poderosa! Quer transformar seu tempo livre em <span className="text-rose-500 underline">R$500 a R$3000 extras</span> por mês vendendo chinelos lindos e personalizados… do zero? 😍👟
+      </p>
+      <p className="text-gray-600 font-semibold text-sm">
+        Jogue agora a <strong>Sorte Chinelista</strong> e gire roletas, abra baús, risque cartelas e desbloqueie descontos ÉPICOS + bônus exclusivos só pra você!
+      </p>
+      <CartoonButton onClick={() => onNext()} className="w-full">
+        Entrar no Jogo e Girar! 🔥
+      </CartoonButton>
+      <p className="text-amber-600 text-sm font-bold italic animate-pulse">Clique e comece sua vitória hoje! 🎁</p>
     </div>
-    <h1 className="text-4xl font-black text-rose-600 leading-tight drop-shadow-md">
-      Sorte Chinelista 100 Artes 👟✨
-    </h1>
-    <p className="text-gray-800 text-lg font-bold leading-relaxed px-4">
-      Mulher poderosa! Quer transformar seu tempo livre em <span className="text-rose-500 underline">R$500 a R$3000 extras</span> por mês vendendo chinelos lindos e personalizados… do zero? 😍👟
-    </p>
-    <p className="text-gray-600 font-semibold text-sm">
-      Jogue agora a <strong>Sorte Chinelista</strong> e gire roletas, abra baús, risque cartelas e desbloqueie descontos ÉPICOS + bônus exclusivos só pra você!
-    </p>
-    <CartoonButton onClick={() => onNext()} className="w-full">
-      Entrar no Jogo e Girar! 🔥
-    </CartoonButton>
-    <p className="text-amber-600 text-sm font-bold italic animate-pulse">Clique e comece sua vitória hoje! 🎁</p>
-  </div>
-);
+  );
+};
 
 export const WelcomeStep: React.FC<StepProps & { state: GameState, updateState: any }> = ({ onNext, updateState }) => {
   const [name, setName] = useState('');
@@ -655,6 +666,12 @@ export const PreviewsStep: React.FC<StepProps & { state: GameState }> = ({ state
 
 export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ state, onNext }) => {
   const handleCheckout = () => {
+    if (typeof window !== 'undefined') {
+      const fbq = (window as any).fbq;
+      if (typeof fbq === 'function') {
+        fbq('track', 'InitiateCheckout');
+      }
+    }
     window.location.href = 'https://www.ggcheckout.com/checkout/v5/JxOcEhc57Ay25W2RUUuu';
   };
 
@@ -710,12 +727,21 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
           </div>
         </div>
         
-        <div className="border-t-4 border-dashed border-rose-100 pt-6 text-center">
-           <p className="text-gray-400 line-through font-bold text-xl italic mb-1">De R$ 99,67</p>
-           <div className="flex flex-col items-center">
-             <p className="text-7xl font-black text-rose-600 tracking-tighter drop-shadow-sm leading-none py-2">R$ 29,90</p>
-             <div className="bg-yellow-400 px-4 py-1 rounded-full font-black text-white text-[10px] uppercase animate-bounce mt-2 shadow-sm">Única Oportunidade!</div>
+        <div className="border-t-4 border-dashed border-rose-100 pt-6 text-center flex flex-col gap-6">
+           <div>
+             <p className="text-gray-400 line-through font-bold text-xl italic mb-1">De R$ 99,67</p>
+             <div className="flex flex-col items-center">
+               <p className="text-7xl font-black text-rose-600 tracking-tighter drop-shadow-sm leading-none py-2">R$ 29,90</p>
+               <div className="bg-yellow-400 px-4 py-1 rounded-full font-black text-white text-[10px] uppercase animate-bounce mt-2 shadow-sm">Única Oportunidade!</div>
+             </div>
            </div>
+           
+           <CartoonButton 
+             onClick={() => handleCheckout()}
+             className="w-full bg-green-500 border-green-700 hover:bg-green-400 text-xl shadow-green-200"
+           >
+             GARANTIR AGORA! <ShoppingCart className="w-6 h-6" />
+           </CartoonButton>
         </div>
       </CartoonCard>
 
@@ -738,6 +764,48 @@ export const FinalOfferStep: React.FC<StepProps & { state: GameState }> = ({ sta
                <img src={t.resultImg} className="w-full h-auto rounded-xl pointer-events-none" alt="Evidência Real" />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* SEÇÃO DE AUTORIDADE: LURDES FERREIRA */}
+      <div className="pt-8 pb-4">
+        <div className="bg-amber-50/50 rounded-[2.5rem] border-2 border-amber-200/60 p-6 shadow-sm text-left">
+          <div className="flex items-start gap-5 mb-5">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl flex-shrink-0 pointer-events-none">
+              <img 
+                src="https://i.postimg.cc/FH42G0pz/531433108-18525829951028445-1552376953128188762-n.jpg" 
+                className="w-full h-full object-cover" 
+                alt="Lurdes Ferreira" 
+              />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-2xl font-black text-gray-800 leading-none">Lurdes Ferreira</h4>
+              <p className="text-amber-600 font-black text-sm uppercase tracking-wide">Criadora do Método Chinelista</p>
+              <div className="flex items-center gap-1 pt-1">
+                 {[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 text-amber-400 fill-current" />)}
+                 <span className="text-[10px] font-bold text-gray-400 ml-1">(+1.200 alunas)</span>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-gray-600 font-medium text-sm leading-relaxed mb-6 italic">
+            "Criado por Lurdes Ferreira, especialista em vendas de chinelos personalizados, que já ajudou dezenas de mulheres a começarem do zero e transformarem criatividade em renda."
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 border-t border-amber-200/40 pt-5">
+             <div className="flex items-center gap-2">
+                <BadgeCheck className="w-5 h-5 text-amber-500" />
+                <span className="text-xs font-black text-gray-700 uppercase">Conteúdo Original</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <Medal className="w-5 h-5 text-amber-500" />
+                <span className="text-xs font-black text-gray-700 uppercase">Método Próprio e Testado</span>
+             </div>
+             <div className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-amber-500" />
+                <span className="text-xs font-black text-gray-700 uppercase">Acompanhamento Especialista</span>
+             </div>
+          </div>
         </div>
       </div>
 
